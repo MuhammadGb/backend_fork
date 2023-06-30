@@ -1,8 +1,8 @@
 import { PrismaClient } from "@prisma/client";
 import express, { NextFunction, Request, Response } from "express";
 import dotenv from "dotenv";
-const path = require("path");
-const http = require("http");
+//const path = require("path");
+//const http = require("http");
 import swaggerUI from "swagger-ui-express";
 import swaggerJsdoc from "swagger-jsdoc";
 import { swaggerDocument } from "./docs/info";
