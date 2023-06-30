@@ -1,0 +1,222 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider     = "mysql"
+  url          = env("DATABASE_URL")
+  relationMode = "prisma"
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model cartItem {
+  id              Int              @id @default(autoincrement())
+  sessionId       Int?
+  productName     String?          @db.VarChar(25)
+  quantity        Int
+  createdAt       DateTime         @default(now())
+  modifiedAt      DateTime         @updatedAt
+  shoppingSession shoppingSession? @relation(fields: [sessionId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "cartItem_ibfk_1")
+  products        products?        @relation(fields: [productName], references: [name], onDelete: NoAction, onUpdate: NoAction, map: "cartItem_ibfk_2")
+
+  @@index([productName], map: "productName")
+  @@index([sessionId], map: "sessionId")
+}
+
+model orderDetails {
+  id                                                    Int             @id @default(autoincrement())
+  userId                                                String?         @db.VarChar(25)
+  total                                                 Decimal?        @db.Decimal(10, 0)
+  paymentId                                             Int?
+  createdAt                                             DateTime?       @default(now())
+  modifiedAt                                            DateTime?       @updatedAt
+  user                                                  user?           @relation(fields: [userId], references: [userId], onDelete: NoAction, onUpdate: NoAction, map: "orderDetails_ibfk_1")
+  paymentDetails_orderDetails_paymentIdTopaymentDetails paymentDetails? @relation("orderDetails_paymentIdTopaymentDetails", fields: [paymentId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "orderDetails_ibfk_2")
+
+  @@index([userId], map: "userId")
+  @@index([paymentId], map: "orderDetails_ibfk_2")
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model orderItems {
+  id          Int       @id @default(autoincrement())
+  orderId     Int?
+  productName String?   @db.VarChar(25)
+  quantity    Int?
+  createdAt   DateTime? @default(now())
+  modifiedAt  DateTime? @updatedAt
+  products    products? @relation(fields: [productName], references: [name], onDelete: NoAction, onUpdate: NoAction, map: "orderItems_ibfk_1")
+
+  @@index([productName], map: "productName")
+  @@index([orderId], map: "fk_orderItems_orderDetails")
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model orderList {
+  id             Int             @id @default(autoincrement())
+  orderId        Int?
+  paymentId      Int?
+  productName    String?         @db.VarChar(25)
+  userId         String?         @db.VarChar(255)
+  paymentDetails paymentDetails? @relation(fields: [paymentId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "orderList_ibfk_1")
+  user           user?           @relation(fields: [userId], references: [userId], onDelete: NoAction, onUpdate: NoAction, map: "orderList_ibfk_3")
+  products       products?       @relation(fields: [productName], references: [name], onDelete: NoAction, onUpdate: NoAction, map: "orderList_ibfk_4")
+
+  @@index([orderId], map: "orderId")
+  @@index([paymentId])
+  @@index([userId], map: "userId")
+  @@index([productName])
+}
+
+model paymentDetails {
+  id                                                  Int            @id @default(autoincrement())
+  orderId                                             Int?
+  amount                                              Decimal?       @db.Decimal(10, 0)
+  provider                                            String?        @db.VarChar(25)
+  status                                              String?        @db.VarChar(255)
+  createdAt                                           DateTime?      @default(now())
+  modifiedAt                                          DateTime?      @updatedAt
+  orderDetails_orderDetails_paymentIdTopaymentDetails orderDetails[] @relation("orderDetails_paymentIdTopaymentDetails")
+  orderList                                           orderList[]
+
+  @@index([orderId], map: "fk_paymentDetails_orderDetails")
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model productInventory {
+  id          Int       @id @default(autoincrement())
+  productName String?   @db.VarChar(25)
+  quantity    Int?
+  createdAt   DateTime? @default(now())
+  modifiedAt  DateTime? @updatedAt
+  deletedAt   DateTime? @db.DateTime(0)
+  products    products? @relation(fields: [productName], references: [name], onDelete: NoAction, onUpdate: NoAction, map: "productInventory_ibfk_1")
+
+  @@index([productName], map: "productName")
+}
+
+model products {
+  id               Int                @unique(map: "id") @default(autoincrement())
+  name             String             @id @db.VarChar(25)
+  description      String?            @db.Text
+  price            Float?             @db.Float
+  productImage     String?            @db.VarChar(255)
+  inventory        Int?
+  discount         Int?
+  categoryName     String?            @db.VarChar(25)
+  createdAt        DateTime?          @default(now())
+  modifiedAt       DateTime?          @updatedAt
+  deletedAt        DateTime?          @db.DateTime(0)
+  cartItem         cartItem[]
+  orderItems       orderItems[]
+  orderList        orderList[]
+  productInventory productInventory[]
+  productsCategory productsCategory?  @relation(fields: [categoryName], references: [categoryName], onDelete: NoAction, onUpdate: NoAction, map: "products_ibfk_1")
+
+  @@index([categoryName], map: "categoryName")
+}
+
+model productsCategory {
+  id           Int        @unique(map: "id") @default(autoincrement())
+  categoryName String     @id @db.VarChar(25)
+  description  String?    @db.Text
+  createdAt    DateTime?  @default(now())
+  modifiedAt   DateTime?  @updatedAt
+  deletedAt    DateTime?  @db.DateTime(0)
+  products     products[]
+}
+
+model shoppingSession {
+  id         Int        @id @default(autoincrement())
+  userId     String?    @db.VarChar(25)
+  total      Decimal?   @db.Decimal(10, 0)
+  createdAt  DateTime?  @default(now())
+  modifiedAt DateTime?  @updatedAt
+  cartItem   cartItem[]
+  user       user?      @relation(fields: [userId], references: [userId], onDelete: NoAction, onUpdate: NoAction, map: "shoppingSession_ibfk_1")
+
+  @@index([userId], map: "userId")
+}
+
+model roles {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  description String?
+  createdAt   DateTime @default(now())
+  modifiedAt  DateTime @updatedAt
+  users       user[]
+}
+
+model user {
+  id              Int               @unique(map: "id") @default(autoincrement())
+  userId          String            @id @unique(map: "userId") @db.VarChar(25)
+  password        String            @db.VarChar(225)
+  fullName        String?           @db.VarChar(25)
+  email           String            @unique(map: "email") @db.VarChar(25)
+  phoneNumber     String?           @unique(map: "phoneNumber") @db.VarChar(25)
+  createdAt       DateTime?         @default(now())
+  modifiedAt      DateTime?         @updatedAt
+  orderDetails    orderDetails[]
+  orderList       orderList[]
+  shoppingSession shoppingSession[]
+  userAddress     userAddress[]
+  userPayment     userPayment[]
+  roles           roles?            @relation(fields: [rolesId], references: [id])
+  rolesId         Int?              @db.Int
+
+  @@index([id], map: "id_Index")
+  @@index([rolesId])
+  @@map("users")
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model userAddress {
+  id           Int     @id @default(autoincrement())
+  userId       String? @db.VarChar(25)
+  addressLine1 String? @db.VarChar(15)
+  addressLine2 String? @db.VarChar(15)
+  city         String? @db.VarChar(10)
+  postalCode   String? @db.VarChar(10)
+  country      String? @db.VarChar(20)
+  phoneNumber  String? @db.VarChar(14)
+  user         user?   @relation(fields: [userId], references: [userId], onDelete: NoAction, onUpdate: NoAction, map: "userAddress_ibfk_1")
+
+  @@index([userId], map: "userId")
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model userPayment {
+  id            Int       @id @default(autoincrement())
+  userId        String?   @db.VarChar(25)
+  paymentType   String?   @db.VarChar(25)
+  provider      String?   @db.VarChar(25)
+  accountNumber String?   @unique(map: "accountNumber") @db.VarChar(10)
+  expiry        DateTime? @db.Date
+  user          user?     @relation(fields: [userId], references: [userId], onDelete: NoAction, onUpdate: NoAction, map: "userPayment_ibfk_1")
+
+  @@index([userId], map: "userId")
+}
+
+model adminType {
+  id          Int      @unique(map: "id") @default(autoincrement())
+  adminType   String   @id @db.VarChar(25)
+  permissions String?  @db.VarChar(25)
+  createdAt   DateTime @default(now())
+  modifiedAt  DateTime @updatedAt
+}
+
+model adminUser {
+  id         Int       @id @default(autoincrement())
+  adminId    String    @unique(map: "adminId") @db.VarChar(25)
+  username   String    @db.VarChar(25)
+  password   String    @db.VarChar(25)
+  firstName  String    @db.VarChar(25)
+  lastName   String    @db.VarChar(25)
+  email      String    @unique(map: "email") @db.VarChar(25)
+  adminType  String    @db.VarChar(25)
+  lastLogin  DateTime? @db.DateTime(0)
+  createdAt  DateTime  @default(now())
+  modifiedAt DateTime  @updatedAt
+
+  @@index([adminType], map: "adminType")
+}
