@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "nodemon src/index.ts --ignore ./db",
     "start": "ts-node src/index.ts --ignore ./db",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "postinstall": "npm install ts-node"
   },
   "author": "",
   "license": "ISC",
@@ -22,7 +23,8 @@
     "passport": "^0.6.0",
     "passport-jwt": "^4.0.1",
     "swagger-jsdoc": "^6.2.8",
-    "swagger-ui-express": "^4.6.3"
+    "swagger-ui-express": "^4.6.3",
+    "ts-node": "^10.9.1"
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.0",
@@ -33,7 +35,6 @@
     "@types/swagger-jsdoc": "^6.0.1",
     "@types/swagger-ui-express": "^4.1.3",
     "prisma": "^4.15.0",
-    "ts-node": "^10.9.1",
     "tslib": "^2.5.3",
     "typescript": "^5.1.3"
   },
