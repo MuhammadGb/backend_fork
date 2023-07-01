@@ -2,8 +2,7 @@
   "name": "bitsac-app",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
-  "type": "module",
+  "main": "index.ts",
   "scripts": {
     "dev": "nodemon src/index.ts --ignore ./db",
     "start": "ts-node src/index.ts --ignore ./db",
